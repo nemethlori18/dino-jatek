@@ -30,15 +30,15 @@
             left: 20px;
         }
         .jump {
-            animation: jump 0.5s ease-out;
+            animation: jump 0.7s ease-out; /* MAGASABB UGRÁS */
         }
         @keyframes jump {
             0% { bottom: 10px; }
-            50% { bottom: 80px; }
+            50% { bottom: 100px; } /* MAGASABB UGRÁS */
             100% { bottom: 10px; }
         }
         #obstacle {
-            font-size: 25px;
+            font-size: 20px; /* KISEBB AKADÁLY */
             position: absolute;
             bottom: 10px;
             left: 100%;
@@ -60,10 +60,10 @@
 </head>
 <body>
     <h2>Dínó ugrálós mini játék</h2>
-    <div id="score">Pontszám: 0</div> <!-- PONTSZÁMLÁLÓ -->
+    <div id="score">Pontszám: 0</div>
     <div id="game">
-        <div id="dino">🦖</div>  <!-- Dínó emoji -->
-        <div id="obstacle">🎇</div>  <!-- Új akadály emoji -->
+        <div id="dino">🦖</div>  
+        <div id="obstacle">🎇</div>  
     </div>
     <button id="jumpBtn">Ugrás</button>
 
@@ -80,7 +80,7 @@
                 dino.classList.add("jump");
                 setTimeout(() => {
                     dino.classList.remove("jump");
-                }, 500);
+                }, 700); // HOSSZABB IDEIG MARAD MAGASAN
             }
         });
 
@@ -90,7 +90,7 @@
             obstacle.style.left = "100%";
 
             let moveInterval = setInterval(() => {
-                obstaclePos -= 5;
+                obstaclePos -= 3; // LASSABB MOZGÁS
                 obstacle.style.left = obstaclePos + "px";
 
                 // Ha az akadály teljesen eltűnik balról, újraindul jobbról és növeli a pontszámot
@@ -107,7 +107,7 @@
                     clearInterval(moveInterval);
                     location.reload();
                 }
-            }, 50);
+            }, 25); // FINOMABB MOZGÁS
         }
 
         // Indítás
