@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dínós játék</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: white;
+        }
+        #gameArea {
+            width: 300px;
+            height: 150px;
+            border: 2px solid black;
+            position: relative;
+            overflow: hidden;
+            background-color: lightgray;
+        }
+        #dino {
+            position: absolute;
+            bottom: 0;
+            left: 20px;
+            font-size: 40px;
+        }
+        #jumpButton {
+            margin-top: 20px;
+            font-size: 20px;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameArea">
+        <span id="dino">🦖</span>
+    </div>
+    <button id="jumpButton">Ugrás</button>
+
+    <script>
+        let dino = document.getElementById("dino");
+        let isJumping = false;
+
+        document.getElementById("jumpButton").addEventListener("click", function() {
+            if (!isJumping) {
+                isJumping = true;
+                let up = setInterval(() => {
+                    let bottom = parseInt(window.getComputedStyle(dino).bottom);
+                    if (bottom < 80) {
+                        dino.style.bottom = bottom + 5 + "px";
+                    } else {
+                        clearInterval(up);
+                        let down = setInterval(() => {
+                            let bottom = parseInt(window.getComputedStyle(dino).bottom);
+                            if (bottom > 0) {
+                                dino.style.bottom = bottom - 5 + "px";
+                            } else {
+                                clearInterval(down);
+                                isJumping = false;
+                            }
+                        }, 20);
+                    }
+                }, 20);
+            }
+        });
+    </script>
+</body>
+</html>
