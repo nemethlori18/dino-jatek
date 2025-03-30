@@ -24,9 +24,7 @@
             background-color: lightgray;
         }
         #dino {
-            width: 30px;
-            height: 30px;
-            background-color: green;
+            font-size: 30px;
             position: absolute;
             bottom: 10px;
             left: 20px;
@@ -40,12 +38,10 @@
             100% { bottom: 10px; }
         }
         #obstacle {
-            width: 20px;
-            height: 30px;
-            background-color: red;
+            font-size: 25px;
             position: absolute;
             bottom: 10px;
-            right: 0;
+            left: 100%;
         }
         #jumpBtn {
             margin-top: 20px;
@@ -56,13 +52,18 @@
             border: none;
             cursor: pointer;
         }
+        #score {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <h2>Dínó ugrálós mini játék</h2>
+    <div id="score">Pontszám: 0</div> <!-- PONTSZÁMLÁLÓ -->
     <div id="game">
-        <div id="dino"></div>
-        <div id="obstacle"></div>
+        <div id="dino">🦖</div>  <!-- Dínó emoji -->
+        <div id="obstacle">🎇</div>  <!-- Új akadály emoji -->
     </div>
     <button id="jumpBtn">Ugrás</button>
 
@@ -70,6 +71,8 @@
         const dino = document.getElementById("dino");
         const jumpBtn = document.getElementById("jumpBtn");
         const obstacle = document.getElementById("obstacle");
+        const scoreDisplay = document.getElementById("score");
+        let score = 0;
 
         // Ugrás funkció
         jumpBtn.addEventListener("click", () => {
@@ -81,29 +84,33 @@
             }
         });
 
-        // Akadály mozgása
+        // Akadály mozgása (jobbról balra)
         function moveObstacle() {
             let obstaclePos = 300;
+            obstacle.style.left = "100%";
+
             let moveInterval = setInterval(() => {
                 obstaclePos -= 5;
-                obstacle.style.right = obstaclePos + "px";
+                obstacle.style.left = obstaclePos + "px";
 
-                // Ha az akadály kifut a képből, újrakezdi
+                // Ha az akadály teljesen eltűnik balról, újraindul jobbról és növeli a pontszámot
                 if (obstaclePos <= -20) {
                     obstaclePos = 300;
+                    score++; // PONTSZÁM NÖVELÉSE
+                    scoreDisplay.innerText = "Pontszám: " + score;
                 }
 
                 // Ütközés ellenőrzése
                 let dinoBottom = parseInt(window.getComputedStyle(dino).bottom);
                 if (obstaclePos <= 50 && obstaclePos >= 20 && dinoBottom < 40) {
-                    alert("Game Over!");
+                    alert("Game Over! Elért pontszám: " + score);
                     clearInterval(moveInterval);
-                    location.reload(); // Újrakezdi a játékot
+                    location.reload();
                 }
             }, 50);
         }
 
-        // Indítsa el az akadály mozgását
+        // Indítás
         moveObstacle();
     </script>
 </body>
