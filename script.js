@@ -7,7 +7,7 @@ const shootButton = document.getElementById("shootButton");
 canvas.width = 300;
 canvas.height = 400;
 
-let spaceship = { x: 150, y: 350, width: 30, height: 30, speed: 4 };
+let spaceship = { x: 150, y: 350, width: 30, height: 30, speed: 5 };
 let obstacles = [];
 let powerups = [];
 let bullets = [];
