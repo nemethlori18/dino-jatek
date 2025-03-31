@@ -1,138 +1,148 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const scoreElement = document.getElementById("score");
-const highscoreElement = document.getElementById("highscore");
-const shootButton = document.getElementById("shootButton");
+const game = document.getElementById("game");
+const spaceship = document.getElementById("spaceship");
+const joystick = document.getElementById("joystick");
+const shootButton = document.getElementById("shoot-button");
+const restartButton = document.getElementById("restart-button");
+const scoreDisplay = document.getElementById("score");
+const highscoreDisplay = document.getElementById("highscore");
 
-canvas.width = 300;
-canvas.height = 400;
-
-let spaceship = { x: 150, y: 350, width: 30, height: 30, speed: 5 };
-let obstacles = [];
-let powerups = [];
-let bullets = [];
+let spaceshipX = game.clientWidth / 2 - 15;
+let spaceshipY = game.clientHeight - 40;
 let score = 0;
 let highscore = localStorage.getItem("highscore") || 0;
-highscoreElement.innerText = highscore;
+highscoreDisplay.textContent = highscore;
 
-function drawSpaceship() {
-    ctx.fillStyle = "blue";
-    ctx.fillRect(spaceship.x, spaceship.y, spaceship.width, spaceship.height);
+let obstacles = [];
+let bullets = [];
+let powerups = [];
+
+function updateSpaceshipPosition() {
+    spaceship.style.left = `${spaceshipX}px`;
+    spaceship.style.top = `${spaceshipY}px`;
 }
 
-function drawObstacles() {
-    ctx.fillStyle = "black";
-    obstacles.forEach(obstacle => {
-        ctx.fillRect(obstacle.x, obstacle.y, obstacle.size, obstacle.size);
-    });
-}
+joystick.addEventListener("touchmove", (event) => {
+    let touch = event.touches[0];
+    let rect = game.getBoundingClientRect();
+    
+    spaceshipX = Math.max(0, Math.min(rect.width - 30, touch.clientX - rect.left - 15));
+    spaceshipY = Math.max(0, Math.min(rect.height - 30, touch.clientY - rect.top - 15));
 
-function drawPowerups() {
-    ctx.fillStyle = "yellow";
-    powerups.forEach(powerup => {
-        ctx.fillRect(powerup.x, powerup.y, powerup.size, powerup.size);
-    });
-}
-
-function drawBullets() {
-    ctx.fillStyle = "red";
-    bullets.forEach(bullet => {
-        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-    });
-}
-
-function updateGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawSpaceship();
-    drawObstacles();
-    drawPowerups();
-    drawBullets();
-
-    obstacles.forEach((obstacle, index) => {
-        obstacle.y += obstacle.speed;
-        if (obstacle.y > canvas.height) {
-            obstacles.splice(index, 1);
-            score++;
-            scoreElement.innerText = score;
-        }
-        if (checkCollision(spaceship, obstacle)) {
-            resetGame();
-        }
-    });
-
-    powerups.forEach((powerup, index) => {
-        powerup.y += powerup.speed;
-        if (powerup.y > canvas.height) {
-            powerups.splice(index, 1);
-        }
-        if (checkCollision(spaceship, powerup)) {
-            powerups.splice(index, 1);
-            spaceship.speed += 2;
-            setTimeout(() => spaceship.speed -= 2, 5000);
-        }
-    });
-
-    bullets.forEach((bullet, bIndex) => {
-        bullet.y -= bullet.speed;
-        if (bullet.y < 0) bullets.splice(bIndex, 1);
-
-        obstacles.forEach((obstacle, oIndex) => {
-            if (checkCollision(bullet, obstacle)) {
-                obstacles.splice(oIndex, 1);
-                bullets.splice(bIndex, 1);
-                score += 5;
-                scoreElement.innerText = score;
-            }
-        });
-    });
-
-    requestAnimationFrame(updateGame);
-}
-
-function checkCollision(a, b) {
-    return (
-        a.x < b.x + b.size &&
-        a.x + a.width > b.x &&
-        a.y < b.y + b.size &&
-        a.y + a.height > b.y
-    );
-}
+    updateSpaceshipPosition();
+    event.preventDefault();
+});
 
 function spawnObstacle() {
-    let size = 30;
-    obstacles.push({ x: Math.random() * (canvas.width - size), y: 0, size, speed: Math.random() * 2 + 1 });
+    const obstacle = document.createElement("div");
+    obstacle.classList.add("obstacle");
+    obstacle.textContent = "☄️";
+    obstacle.style.left = `${Math.random() * (game.clientWidth - 30)}px`;
+    obstacle.style.top = "0px";
+
+    let speed = Math.random() * 3 + 2;
+    game.appendChild(obstacle);
+    obstacles.push({ element: obstacle, speed: speed });
 }
 
 function spawnPowerup() {
-    let size = 20;
-    powerups.push({ x: Math.random() * (canvas.width - size), y: 0, size, speed: 1 });
+    const powerup = document.createElement("div");
+    powerup.classList.add("powerup");
+    powerup.textContent = "🔅";
+    powerup.style.left = `${Math.random() * (game.clientWidth - 30)}px`;
+    powerup.style.top = "0px";
+
+    game.appendChild(powerup);
+    powerups.push({ element: powerup });
+}
+
+function moveObstacles() {
+    obstacles.forEach((obstacle, index) => {
+        let newY = parseInt(obstacle.element.style.top) + obstacle.speed;
+        obstacle.element.style.top = `${newY}px`;
+
+        if (newY > game.clientHeight) {
+            obstacle.element.remove();
+            obstacles.splice(index, 1);
+        }
+
+        let rect1 = spaceship.getBoundingClientRect();
+        let rect2 = obstacle.element.getBoundingClientRect();
+        if (
+            rect1.left < rect2.right &&
+            rect1.right > rect2.left &&
+            rect1.top < rect2.bottom &&
+            rect1.bottom > rect2.top
+        ) {
+            restartGame();
+        }
+    });
+}
+
+function moveBullets() {
+    bullets.forEach((bullet, index) => {
+        let newY = parseInt(bullet.element.style.top) - 5;
+        bullet.element.style.top = `${newY}px`;
+
+        if (newY < 0) {
+            bullet.element.remove();
+            bullets.splice(index, 1);
+        }
+
+        obstacles.forEach((obstacle, obsIndex) => {
+            let rect1 = bullet.element.getBoundingClientRect();
+            let rect2 = obstacle.element.getBoundingClientRect();
+
+            if (
+                rect1.left < rect2.right &&
+                rect1.right > rect2.left &&
+                rect1.top < rect2.bottom &&
+                rect1.bottom > rect2.top
+            ) {
+                bullet.element.remove();
+                obstacle.element.remove();
+                bullets.splice(index, 1);
+                obstacles.splice(obsIndex, 1);
+                score += 10;
+                scoreDisplay.textContent = score;
+                if (score > highscore) {
+                    highscore = score;
+                    localStorage.setItem("highscore", highscore);
+                    highscoreDisplay.textContent = highscore;
+                }
+            }
+        });
+    });
 }
 
 function shootBullet() {
-    bullets.push({ x: spaceship.x + spaceship.width / 2 - 2, y: spaceship.y, width: 4, height: 10, speed: 5 });
-}
+    const bullet = document.createElement("div");
+    bullet.classList.add("bullet");
+    bullet.style.left = `${spaceshipX + 10}px`;
+    bullet.style.top = `${spaceshipY}px`;
 
-function resetGame() {
-    if (score > highscore) {
-        highscore = score;
-        localStorage.setItem("highscore", highscore);
-        highscoreElement.innerText = highscore;
-    }
-    score = 0;
-    scoreElement.innerText = score;
-    obstacles = [];
-    powerups = [];
-    bullets = [];
-    spaceship.x = 150;
-    spaceship.y = 350;
+    game.appendChild(bullet);
+    bullets.push({ element: bullet });
 }
-
-document.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowLeft" && spaceship.x > 0) spaceship.x -= spaceship.speed;
-    if (event.key === "ArrowRight" && spaceship.x + spaceship.width < canvas.width) spaceship.x += spaceship.speed;
-});
 
 shootButton.addEventListener("click", shootBullet);
+
+function restartGame() {
+    obstacles.forEach((obs) => obs.element.remove());
+    bullets.forEach((bul) => bul.element.remove());
+    powerups.forEach((pu) => pu.element.remove());
+
+    obstacles = [];
+    bullets = [];
+    powerups = [];
+    score = 0;
+    scoreDisplay.textContent = score;
+}
+
+restartButton.addEventListener("click", restartGame);
+
 setInterval(spawnObstacle, 2000);
 setInterval(spawnPowerup, 5000);
-updateGame();
+setInterval(() => {
+    moveObstacles();
+    moveBullets();
+}, 30);
