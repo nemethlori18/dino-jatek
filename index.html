@@ -2,206 +2,22 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Űrhajós Játék</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
-            background-color: white;
-            font-family: Arial, sans-serif;
-            margin: 0;
-        }
-        h2 {
-            margin-top: 10px;
-        }
-        #scoreboard {
-            font-size: 18px;
-            margin-bottom: 5px;
-        }
-        #highscoreboard {
-            font-size: 16px;
-            margin-bottom: 10px;
-            color: darkred;
-        }
-        #game {
-            width: 300px;
-            height: 400px;
-            border: 2px solid black;
-            position: relative;
-            background-color: gray;
-            overflow: hidden;
-            margin-top: 30px;
-        }
-        #ship {
-            width: 30px;
-            height: 30px;
-            font-size: 24px;
-            text-align: center;
-            line-height: 30px;
-            position: absolute;
-            left: 135px;
-            top: 350px;
-        }
-        .obstacle, .powerup {
-            width: 30px;
-            height: 30px;
-            font-size: 24px;
-            text-align: center;
-            line-height: 30px;
-            position: absolute;
-        }
-        #joystick-container {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 100px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #joystick {
-            width: 50px;
-            height: 50px;
-            background-color: black;
-            border-radius: 50%;
-            position: relative;
-            cursor: grab;
-        }
-        #shootButton {
-            position: absolute;
-            bottom: 90px;
-            right: 30px;
-            padding: 10px 20px;
-            background-color: red;
-            color: white;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h2>Űrhajós Játék</h2>
-    <div id="scoreboard">Pontszám: <span id="score">0</span></div>
-    <div id="highscoreboard">Legtöbb elért pont: <span id="highscore">0</span></div>
-    <div id="game">
-        <div id="ship">🚀</div>
+    <h1>Űrhajós Játék</h1>
+    <p>Pontszám: <span id="score">0</span></p>
+    <p>Legtöbb pont: <span id="highscore">0</span></p>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
     </div>
-    <div id="joystick-container">
-        <div id="joystick"></div>
-    </div>
+
     <button id="shootButton">Lövés</button>
+    <div id="joystick"></div>
 
-    <script>
-        const game = document.getElementById("game");
-        const ship = document.getElementById("ship");
-        const joystick = document.getElementById("joystick");
-        const joystickContainer = document.getElementById("joystick-container");
-        const shootButton = document.getElementById("shootButton");
-        const scoreElement = document.getElementById("score");
-        const highscoreElement = document.getElementById("highscore");
-
-        let shipX = 135;
-        let shipY = 350;
-        let score = 0;
-        let highscore = localStorage.getItem("highscore") || 0;
-        highscoreElement.innerText = highscore;
-
-        function updateShipPosition() {
-            ship.style.left = `${shipX}px`;
-            ship.style.top = `${shipY}px`;
-        }
-
-        joystick.addEventListener("touchmove", (event) => {
-            let touch = event.touches[0];
-            let rect = joystickContainer.getBoundingClientRect();
-            let deltaX = touch.clientX - (rect.left + 50);
-            let deltaY = touch.clientY - (rect.top + 50);
-
-            let distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            let maxDistance = 40;
-
-            if (distance > maxDistance) {
-                deltaX = (deltaX / distance) * maxDistance;
-                deltaY = (deltaY / distance) * maxDistance;
-            }
-
-            joystick.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-
-            shipX = Math.max(0, Math.min(game.clientWidth - 30, shipX + deltaX * 0.1));
-            shipY = Math.max(0, Math.min(game.clientHeight - 30, shipY + deltaY * 0.1));
-
-            updateShipPosition();
-            event.preventDefault();
-        });
-
-        joystick.addEventListener("touchend", () => {
-            joystick.style.transform = "translate(0, 0)";
-        });
-
-        function createObstacle() {
-            let obstacle = document.createElement("div");
-            obstacle.classList.add("obstacle");
-            obstacle.innerText = "🌑";
-            let obstacleX = Math.random() * (game.clientWidth - 30);
-            obstacle.style.left = `${obstacleX}px`;
-            obstacle.style.top = "-30px";
-            game.appendChild(obstacle);
-
-            let speed = Math.random() * 3 + 1;
-
-            function moveObstacle() {
-                let currentTop = parseInt(obstacle.style.top);
-                if (currentTop < game.clientHeight) {
-                    obstacle.style.top = `${currentTop + speed}px`;
-                    requestAnimationFrame(moveObstacle);
-                } else {
-                    obstacle.remove();
-                    score++;
-                    scoreElement.innerText = score;
-                    if (score > highscore) {
-                        highscore = score;
-                        localStorage.setItem("highscore", highscore);
-                        highscoreElement.innerText = highscore;
-                    }
-                }
-            }
-            moveObstacle();
-        }
-
-        function shootBullet() {
-            let bullet = document.createElement("div");
-            bullet.classList.add("bullet");
-            bullet.innerText = "🔺";
-            bullet.style.position = "absolute";
-            bullet.style.left = `${shipX + 10}px`;
-            bullet.style.top = `${shipY}px`;
-            bullet.style.fontSize = "24px";
-            game.appendChild(bullet);
-
-            function moveBullet() {
-                let currentTop = parseInt(bullet.style.top);
-                if (currentTop > -30) {
-                    bullet.style.top = `${currentTop - 5}px`;
-                    requestAnimationFrame(moveBullet);
-                } else {
-                    bullet.remove();
-                }
-            }
-            moveBullet();
-        }
-
-        shootButton.addEventListener("click", shootBullet);
-
-        setInterval(createObstacle, 2000);
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
