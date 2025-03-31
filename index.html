@@ -2,21 +2,27 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Űrhajós Játék</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Űrhajós Joystick Játék</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Űrhajós Játék</h1>
+    <h2>Űrhajós Joystick Játék</h2>
     <p>Pontszám: <span id="score">0</span></p>
-    <p>Legtöbb pont: <span id="highscore">0</span></p>
+    <p>Legtöbb elért pont: <span id="highscore">0</span></p>
 
-    <div id="gameContainer">
-        <canvas id="gameCanvas"></canvas>
+    <div id="game">
+        <div id="spaceship">🚀</div>
     </div>
 
-    <button id="shootButton">Lövés</button>
-    <div id="joystick"></div>
+    <div id="controls">
+        <div id="joystick-container">
+            <div id="joystick"></div>
+        </div>
+        <button id="shoot-button">Lövés</button>
+    </div>
+
+    <button id="restart-button">Újraindítás</button>
 
     <script src="script.js"></script>
 </body>
